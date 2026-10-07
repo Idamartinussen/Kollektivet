@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Hvert kollektiv har sin egen hemmelige kode. Bare innloggede (anonyme)
+    // brukere som kjenner koden kan lese og skrive. Ingen kan liste opp alle kollektiver.
+    match /households/{house}/{document=**} {
+      allow read, write: if request.auth != null && house.size() >= 12;
+    }
+  }
+}

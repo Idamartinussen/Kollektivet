@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kollektivet</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kollektivet">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#E9EEF2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121A26" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EEF2; --surface:#FFFFFF; --ink:#16233A; --muted:#5B6B82; --line:#D3DBE4;
+  --marker:#FFD43B; --pos:#2B8A3E; --neg:#C92A2A; --soft:#F3F6F9;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#121A26; --surface:#1B2533; --ink:#E8EEF6; --muted:#93A3B8; --line:#2C3A4D;
+  --pos:#69DB7C; --neg:#FF8787; --soft:#16202D;
+}}
+:root[data-theme="dark"]{
+  --bg:#121A26; --surface:#1B2533; --ink:#E8EEF6; --muted:#93A3B8; --line:#2C3A4D;
+  --pos:#69DB7C; --neg:#FF8787; --soft:#16202D;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Bricolage Grotesque",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:720px;margin:0 auto;padding:28px 18px 64px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--marker);outline-offset:2px}
+
+/* Header */
+header{margin-bottom:22px}
+.house{font-size:clamp(2.4rem,9vw,3.6rem);font-weight:800;letter-spacing:-.03em;line-height:1;
+  border:0;background:none;padding:0;margin:0;width:100%;outline:none;font-variation-settings:"opsz" 96}
+.house:focus-visible{box-shadow:0 3px 0 var(--marker)}
+.sub{color:var(--muted);margin:8px 0 16px}
+.magnets{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.magnet{display:inline-flex;align-items:center;gap:7px;padding:5px 6px 5px 12px;border-radius:999px;
+  background:var(--surface);border:1px solid var(--line);font-weight:500}
+.magnet .dot{width:10px;height:10px;border-radius:50%}
+.magnet button{border:0;background:none;color:var(--muted);width:24px;height:24px;border-radius:50%;line-height:1}
+.magnet button:hover{background:var(--soft);color:var(--ink)}
+.addperson{display:inline-flex;gap:6px}
+.addperson{align-items:center}
+.addperson input{width:160px;padding:6px 12px;border-radius:999px;border:1px dashed var(--muted);background:transparent}
+
+/* Tabs */
+nav{display:flex;gap:4px;margin:26px 0 18px;border-bottom:2px solid var(--line)}
+nav button{border:0;background:none;padding:10px 12px 12px;font-size:1.05rem;font-weight:600;color:var(--muted);
+  position:relative;margin-bottom:-2px;border-bottom:2px solid transparent}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+nav button[aria-selected="true"] span.lbl{background:linear-gradient(transparent 55%,var(--marker) 55%);}
+.badge{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:var(--ink);color:var(--bg);
+  font-size:.75rem;line-height:20px;text-align:center;vertical-align:2px}
+
+/* Blocks */
+.block{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.block h2{font-size:1.2rem;margin:0 0 12px;font-weight:600;letter-spacing:-.01em}
+.muted{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1;min-width:0}
+input[type=text],input[type=number],input[inputmode],select{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);width:100%}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;background:var(--ink);color:var(--bg);white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:6px 12px;font-size:.9rem}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.x{border:0;background:none;color:var(--muted);width:32px;height:32px;border-radius:8px;flex:none;font-size:1.1rem}
+.x:hover{background:var(--soft);color:var(--neg)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+label.f{display:block;font-size:.88rem;color:var(--muted);margin-bottom:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:5px 12px 5px 9px;display:inline-flex;gap:6px;align-items:center;font-size:.92rem}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+
+/* Balances */
+.bal{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center}
+.bar{height:10px;border-radius:5px;background:var(--soft);position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;border-radius:5px}
+.amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;white-space:nowrap}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.transfer{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.transfer:first-child{border-top:0;padding-top:0}
+.who{font-weight:600}
+ul.list{list-style:none;margin:0;padding:0}
+ul.list li{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+ul.list li:first-child{border-top:0}
+.meta{font-size:.86rem;color:var(--muted)}
+ul.list li.editing{background:var(--soft);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:10px}
+.editbox{border-color:var(--ink)}
+.settle-tag{font-size:.78rem;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted);margin-left:6px}
+
+/* Chores */
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.weeknav h2{margin:0}
+.weeknav .nb{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.chore{display:flex;align-items:center;gap:12px}
+.check{width:28px;height:28px;border-radius:8px;border:2px solid var(--line);background:var(--surface);flex:none;display:grid;place-items:center;padding:0}
+.check[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.check svg{width:16px;height:16px}
+.done-txt{text-decoration:line-through;color:var(--muted)}
+.assignee{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.assignee .dot{width:10px;height:10px;border-radius:50%}
+
+/* Shopping */
+.buybar{background:var(--marker);color:#16233A;border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.buybar input,.buybar select{background:#fff;border-color:rgba(22,35,58,.2);color:#16233A}
+.buybar .btn{background:#16233A;color:#fff}
+.buybar .btn.ghost{background:transparent;color:#16233A;border-color:rgba(22,35,58,.35)}
+
+.empty{text-align:center;padding:28px 10px;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-size:1.15rem;margin-bottom:4px}
+footer{margin-top:28px;font-size:.85rem;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:10px;font-weight:500;max-width:90vw;z-index:10}
+.loading{padding:60px 0;text-align:center;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){ .check{transition:background .15s} }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="loading">Kobler til …</div></div>
+<div id="toast" class="toast" hidden></div>
+
+<!-- Firebase (gratis database). Lim inn din egen konfigurasjon under, se LES-MEG.md -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ====== LIM INN FIREBASE-KONFIGURASJONEN DIN HER ======
+window.FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+// ======================================================
+</script>
+<script>
+(() => {
+"use strict";
+const COLORS = ["#3B5BDB","#E8590C","#2B8A3E","#C2255C","#7048E8","#0C8599","#E67700","#5C940D","#862E9C","#1971C2"];
+const SUGGESTED = ["Kjøkken","Bad","Stue og gang","Søppel og pant"];
+const S = {
+  meta: { name: "Kollektivet", members: [], chores: [] },
+  expenses: [], shopping: [], chorelog: {},
+  allMembers: [], editing: null, tab: "utgifter", weekOffset: 0, mode: "loading", readOnly: false,
+  draft: { desc:"", amount:"", paidBy:"", split:null, person:"", item:"", chore:"", buyAmount:"", buyPayer:"" }
+};
+let store, nameTimer;
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+const parseAmt = v => { const n = parseFloat(String(v).replace(/\s/g,"").replace(",", ".")); return isFinite(n) ? Math.round(n*100)/100 : NaN; };
+const kr = n => { const r = Math.round(n*100)/100; return r.toLocaleString("nb-NO",{minimumFractionDigits: r%1 ? 2 : 0, maximumFractionDigits:2}) + " kr"; };
+const member = id => S.meta.members.find(m => m.id === id);
+const person = id => S.allMembers.find(m => m.id === id);
+const nameOf = id => person(id)?.name || "Tidligere beboer";
+const colorOf = id => person(id)?.color || "#868E96";
+const round2 = n => Math.round((n || 0) * 100) / 100;
+const dot = id => `<span class="dot" style="background:${colorOf(id)}"></span>`;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+
+const DAY = 864e5;
+function mondayOf(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const wd=(x.getDay()+6)%7; x.setDate(x.getDate()-wd); return x; }
+const EPOCH = new Date(2024,0,1); // a Monday
+function weekIndex(offset){ return Math.round((mondayOf(new Date()) - EPOCH)/ (7*DAY)) + offset; }
+function isoWeek(d){ const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const n=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-n); const y=new Date(Date.UTC(t.getUTCFullYear(),0,1)); return Math.ceil(((t-y)/DAY+1)/7); }
+function weekLabel(offset){
+  const mon = new Date(mondayOf(new Date()).getTime() + offset*7*DAY);
+  const sun = new Date(mon.getTime() + 6*DAY);
+  const f = d => d.toLocaleDateString("nb-NO",{day:"numeric",month:"short"});
+  return { title: `Uke ${isoWeek(mon)}`, range: `${f(mon)} – ${f(sun)}` };
+}
+
+/* ---------- storage adapters ---------- */
+function remoteStore(db, prefix){
+  const P = p => prefix + p;
+  const queues = {};
+  const q = (path, fn) => (queues[path] = (queues[path] || Promise.resolve()).catch(()=>{}).then(fn));
+  const onErr = e => { console.error(e); toast(e && e.code === "permission-denied" ? "Ingen tilgang til databasen. Sjekk reglene i Firebase." : "Mistet kontakten med databasen. Last inn siden på nytt."); };
+  return {
+    watchDoc: (p, cb) => db.doc(P(p)).onSnapshot(s => cb(s.exists ? s.data() : null), onErr),
+    watchColl: (p, cb) => db.collection(P(p)).onSnapshot(s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), onErr),
+    set: (p, data) => q(p, () => db.doc(P(p)).set(data)),
+    del: p => q(p, () => db.doc(P(p)).delete())
+  };
+}
+function localStore(){
+  const KEY = "kollektivet-v1"; let data = {};
+  try { data = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e){}
+  const subs = [];
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){} };
+  const emit = () => subs.forEach(s => s());
+  const collOf = p => p.split("/").slice(0,-1).join("/");
+  return {
+    watchDoc(p, cb){ const f = () => cb(data[p] ? JSON.parse(JSON.stringify(data[p])) : null); subs.push(f); f(); return () => {}; },
+    watchColl(c, cb){ const f = () => cb(Object.keys(data).filter(k => collOf(k) === c).map(k => ({ id: k.split("/").pop(), ...data[k] }))); subs.push(f); f(); return () => {}; },
+    async set(p, d){ data[p] = d; save(); emit(); },
+    async del(p){ delete data[p]; save(); emit(); }
+  };
+}
+async function write(promise){
+  try { await promise; }
+  catch(e){
+    if (e && e.code === "permission-denied") toast("Databasen nektet lagring. Sjekk sikkerhetsreglene i Firebase (se LES-MEG).");
+    else if (e && (e.code === "quota_exceeded" || e.code === "resource-exhausted")) toast("Lagringsplassen er full. Slett gamle utgifter for å lage plass.");
+    else toast("Klarte ikke å lagre. Prøv igjen om litt.");
+  }
+}
+const MAX = 10;
+const saveMeta = () => write(store.set("house/meta", { name: S.meta.name }));
+const byCreated = (a,b) => ((a.created||0)-(b.created||0)) || (a.id < b.id ? -1 : 1);
+
+/* ---------- money ---------- */
+function balances(){
+  const bal = {}; S.meta.members.forEach(m => bal[m.id] = 0);
+  for (const e of S.expenses){
+    const split = (e.split || []).filter(Boolean); if (!split.length || !(e.amount > 0)) continue;
+    bal[e.paidBy] = (bal[e.paidBy] || 0) + e.amount;
+    const share = e.amount / split.length;
+    split.forEach(id => bal[id] = (bal[id] || 0) - share);
+  }
+  return bal;
+}
+function settlements(bal){
+  const cred = [], deb = [];
+  for (const [id, v] of Object.entries(bal)){ const r = Math.round(v*100)/100; if (r > 0.009) cred.push({id, v:r}); else if (r < -0.009) deb.push({id, v:-r}); }
+  cred.sort((a,b)=>b.v-a.v); deb.sort((a,b)=>b.v-a.v);
+  const out = []; let i=0, j=0;
+  while (i < deb.length && j < cred.length){
+    const x = Math.min(deb[i].v, cred[j].v);
+    out.push({ from: deb[i].id, to: cred[j].id, amount: Math.round(x*100)/100 });
+    deb[i].v -= x; cred[j].v -= x;
+    if (deb[i].v < 0.01) i++; if (cred[j].v < 0.01) j++;
+  }
+  return out;
+}
+
+/* ---------- chores ---------- */
+function assigneeFor(choreIdx, offset){
+  const n = S.meta.members.length; if (!n) return null;
+  const w = weekIndex(offset);
+  return S.meta.members[((choreIdx + w) % n + n) % n].id;
+}
+const choreKey = (choreId, offset) => `${choreId}_${weekIndex(offset)}`;
+
+/* ---------- render ---------- */
+const CHECK = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>`;
+
+function render(){
+  const app = document.getElementById("app");
+  if (S.mode === "loading") return;
+  if (S.mode === "welcome"){ app.innerHTML = renderWelcome(); return; }
+  const a = document.activeElement; const focusId = a && a.id; const sel = a && a.selectionStart != null ? [a.selectionStart, a.selectionEnd] : null;
+
+  const ro = S.readOnly;
+  const members = S.meta.members;
+  const openItems = S.shopping.filter(s => !s.done).length;
+  const choresOpen = S.meta.chores.filter(c => !S.chorelog[choreKey(c.id,0)]).length;
+
+  let html = `<header>
+    <input class="house" id="houseName" aria-label="Navn på kollektivet" value="${esc(S.meta.name)}" ${ro?"disabled":""} maxlength="40">
+    <p class="sub">Utgifter, vaskeliste og handleliste for alle som bor her.</p>
+    <div class="magnets">
+      ${members.map(m => `<span class="magnet"><span class="dot" style="background:${m.color}"></span>${esc(m.name)}${ro?"":`<button data-act="rmPerson" data-id="${m.id}" aria-label="Fjern ${esc(m.name)}">×</button>`}</span>`).join("")}
+      ${ro || members.length >= MAX ? "" : `<form class="addperson" data-form="person"><input id="dPerson" data-draft="person" placeholder="Navn på beboer" value="${esc(S.draft.person)}" maxlength="24" aria-label="Navn på ny beboer"><button class="btn small" type="submit">Legg til</button></form>`}
+    </div>
+    <p class="meta" style="margin:8px 0 0">${members.length} av ${MAX} beboere${members.length >= MAX ? ". Kollektivet er fullt." : ""}</p>
+  </header>`;
+
+  if (!members.length){
+    html += `<div class="block empty"><strong>Hvem bor her?</strong>Legg til alle som bor i kollektivet over, opptil 10 personer. Så fordeler appen resten.</div>`;
+  } else {
+    html += `<nav role="tablist">
+      ${tabBtn("utgifter","Utgifter", "")}
+      ${tabBtn("vask","Vaskeliste", choresOpen ? `<span class="badge">${choresOpen}</span>` : "")}
+      ${tabBtn("handle","Handleliste", openItems ? `<span class="badge">${openItems}</span>` : "")}
+    </nav>`;
+    html += S.tab === "utgifter" ? renderExpenses() : S.tab === "vask" ? renderChores() : renderShopping();
+  }
+
+  html += `<footer>${S.mode === "shared"
+    ? `Alle som har invitasjonslenken ser og oppdaterer de samme listene i sanntid.
+       <div class="row" style="margin-top:10px;flex-wrap:wrap">
+         <button class="btn small" data-act="invite">Inviter de du bor med</button>
+         <button class="btn small ghost" data-act="recommend">Tips et annet kollektiv</button>
+         <button class="btn small ghost" data-act="switchHouse">Bytt kollektiv</button></div>
+       <p style="margin:8px 0 0">«Inviter» gir tilgang til akkurat dette kollektivet. «Tips et annet kollektiv» sender en lenke der de lager sitt eget, uten å se dataene deres.</p>`
+    : "Firebase er ikke satt opp ennå, så alt lagres bare på denne enheten. Se LES-MEG.md."}</footer>`;
+
+  app.innerHTML = html;
+  if (focusId){ const el = document.getElementById(focusId); if (el){ el.focus(); if (sel && el.setSelectionRange) try { el.setSelectionRange(sel[0], sel[1]); } catch(e){} } }
+}
+function tabBtn(id, label, extra){
+  return `<button role="tab" aria-selected="${S.tab===id}" data-act="tab" data-id="${id}"><span class="lbl">${label}</span>${extra}</button>`;
+}
+
+function renderExpenses(){
+  const ro = S.readOnly, members = S.meta.members;
+  const bal = balances(); const plan = settlements(bal);
+  const max = Math.max(1, ...Object.values(bal).map(Math.abs));
+  if (S.editing && !S.expenses.some(x => x.id === S.editing)) resetExpenseDraft();
+  if (!S.draft.paidBy || !(S.editing ? person(S.draft.paidBy) : member(S.draft.paidBy))) S.draft.paidBy = members[0].id;
+  const split = S.draft.split ?? members.map(m => m.id);
+  const extra = S.allMembers.filter(m => m.removed && (split.includes(m.id) || m.id === S.draft.paidBy) && S.editing);
+  const formPeople = [...members, ...extra];
+
+  let h = `<section class="block"><h2>Oppgjør</h2>`;
+  h += plan.length ? plan.map(t => `<div class="transfer">
+      <div class="grow"><span class="who">${esc(nameOf(t.from))}</span> betaler <span class="who">${esc(nameOf(t.to))}</span></div>
+      <span class="amt">${kr(t.amount)}</span>
+      ${ro ? "" : `<button class="btn small ghost" data-act="settle" data-from="${t.from}" data-to="${t.to}" data-amt="${t.amount}">Betalt</button>`}
+    </div>`).join("")
+    : `<p class="muted" style="margin:0">Alle er i balanse. Ingen skylder noen noe.</p>`;
+  h += `</section>`;
+
+  h += `<section class="block"><h2>Saldo</h2><div class="bal">`;
+  const shown = [...members, ...S.allMembers.filter(m => m.removed && Math.abs(round2(bal[m.id])) > 0.009)];
+  for (const m of shown){
+    const v = Math.round((bal[m.id]||0)*100)/100; const w = Math.abs(v)/max*50;
+    h += `<span class="assignee">${dot(m.id)}${esc(m.name)}${m.removed ? ` <span class="meta" style="font-weight:400">(flyttet ut)</span>` : ""}</span>
+      <div class="bar" aria-hidden="true"><i style="${v>=0?`left:50%;width:${w}%;background:var(--pos)`:`right:50%;width:${w}%;background:var(--neg)`}"></i></div>
+      <span class="amt ${v>0.009?"pos":v<-0.009?"neg":""}">${v>0.009?"+":""}${kr(v)}</span>`;
+  }
+  h += `</div><p class="meta" style="margin:12px 0 0">Pluss betyr at du har lagt ut mer enn din andel.</p></section>`;
+
+  if (!ro){
+    h += `<section class="block${S.editing ? " editbox" : ""}" id="expenseForm"><h2>${S.editing ? "Endre utgift" : "Ny utgift"}</h2>
+    <form data-form="expense">
+      <div class="grid2">
+        <div><label class="f" for="dDesc">Hva gjelder det?</label><input id="dDesc" type="text" data-draft="desc" value="${esc(S.draft.desc)}" placeholder="Strøm, internett, dopapir …" maxlength="60"></div>
+        <div><label class="f" for="dAmount">Beløp (kr)</label><input id="dAmount" inputmode="decimal" data-draft="amount" value="${esc(S.draft.amount)}" placeholder="0"></div>
+      </div>
+      <div style="margin-top:10px"><label class="f" for="dPaid">Betalt av</label>
+        <select id="dPaid" data-draft="paidBy">${formPeople.map(m=>`<option value="${m.id}" ${m.id===S.draft.paidBy?"selected":""}>${esc(m.name)}</option>`).join("")}</select></div>
+      <div style="margin-top:12px"><span class="f" style="display:block;font-size:.88rem;color:var(--muted);margin-bottom:6px">Deles på</span>
+        <div class="chips">${formPeople.map(m=>`<button type="button" class="chip" data-act="toggleSplit" data-id="${m.id}" aria-pressed="${split.includes(m.id)}">${dot(m.id)}${esc(m.name)}</button>`).join("")}</div>
+      </div>
+      <div class="row" style="margin-top:14px;justify-content:space-between">
+        <span class="meta" id="perPerson">${perPerson(split)}</span>
+        <span class="row" style="flex-wrap:wrap;justify-content:flex-end">
+          ${S.editing ? `<button class="btn ghost" type="button" data-act="rmExpense" data-id="${S.editing}" style="color:var(--neg)">Slett</button>
+          <button class="btn ghost" type="button" data-act="cancelEdit">Avbryt</button>` : ""}
+          <button class="btn" type="submit">${S.editing ? "Lagre endringer" : "Legg til utgift"}</button>
+        </span>
+      </div>
+    </form></section>`;
+  }
+
+  const list = [...S.expenses].sort((a,b)=>(b.date||0)-(a.date||0));
+  h += `<section class="block"><h2>Historikk</h2>`;
+  h += list.length ? `<ul class="list">${list.map(e => `<li${e.id === S.editing ? ' class="editing"' : ""}>
+      <div class="grow"><div>${esc(e.desc)}${e.type==="settle"?`<span class="settle-tag">oppgjør</span>`:""}</div>
+      <div class="meta">${esc(nameOf(e.paidBy))} betalte, ${e.type==="settle" ? `til ${esc(nameOf(e.split?.[0]))}` : `delt på ${e.split?.length||0}`}, ${new Date(e.date).toLocaleDateString("nb-NO",{day:"numeric",month:"short"})}</div></div>
+      <span class="amt">${kr(e.amount)}</span>
+      ${ro ? "" : e.type === "settle"
+        ? `<button class="btn small ghost" data-act="rmExpense" data-id="${e.id}">Angre</button>`
+        : `<button class="btn small ghost" data-act="editExpense" data-id="${e.id}">Endre</button>
+           <button class="x" data-act="rmExpense" data-id="${e.id}" aria-label="Slett ${esc(e.desc)}">×</button>`}
+    </li>`).join("")}</ul>
+    ${ro ? "" : `<div style="margin-top:14px;text-align:right"><button class="btn small ghost" data-act="clearExpenses">Slett all historikk og start på nytt</button></div>`}`
+    : `<p class="muted" style="margin:0">Ingen utgifter ennå. Legg inn den første over.</p>`;
+  h += `</section>`;
+  return h;
+}
+
+function renderChores(){
+  const ro = S.readOnly, off = S.weekOffset, wl = weekLabel(off);
+  const chores = S.meta.chores;
+  let h = `<section class="block">
+    <div class="weeknav">
+      <button class="nb" data-act="week" data-d="-1" aria-label="Forrige uke">‹</button>
+      <div style="text-align:center"><h2>${wl.title}${off===0?" (denne uka)":""}</h2><div class="meta">${wl.range}</div></div>
+      <button class="nb" data-act="week" data-d="1" aria-label="Neste uke">›</button>
+    </div>`;
+  if (!chores.length){
+    h += `<div class="empty"><strong>Ingen oppgaver ennå</strong>Legg til det som må gjøres hver uke, så roterer appen hvem som har hva.
+      ${ro?"":`<div style="margin-top:14px"><button class="btn" data-act="suggest">Bruk forslag: ${SUGGESTED.join(", ")}</button></div>`}</div>`;
+  } else {
+    h += `<ul class="list">${chores.map((c,i) => {
+      const who = assigneeFor(i, off); const done = !!S.chorelog[choreKey(c.id, off)];
+      return `<li class="chore">
+        <button class="check" role="checkbox" aria-checked="${done}" aria-label="${esc(c.name)} gjort" data-act="toggleChore" data-id="${c.id}" ${ro||off>0?"disabled":""}>${done?CHECK:""}</button>
+        <span class="grow ${done?"done-txt":""}">${esc(c.name)}</span>
+        <span class="assignee">${dot(who)}${esc(nameOf(who))}</span>
+        ${ro?"":`<button class="x" data-act="rmChore" data-id="${c.id}" aria-label="Fjern ${esc(c.name)}">×</button>`}
+      </li>`; }).join("")}</ul>`;
+  }
+  h += `</section>`;
+  if (!ro){
+    h += `<section class="block"><h2>Ny oppgave</h2><form data-form="chore" class="row">
+      <input id="dChore" class="grow" type="text" data-draft="chore" value="${esc(S.draft.chore)}" placeholder="F.eks. vaske kjøleskapet" maxlength="40">
+      <button class="btn" type="submit">Legg til</button></form>
+      <p class="meta" style="margin:10px 0 0">Oppgavene går på rundgang mellom beboerne hver mandag.</p></section>`;
+  }
+  return h;
+}
+
+function renderShopping(){
+  const ro = S.readOnly, members = S.meta.members;
+  const items = [...S.shopping].sort((a,b)=>(a.done-b.done)||((a.added||0)-(b.added||0)));
+  const bought = items.filter(i => i.done);
+  if (!S.draft.buyPayer || !member(S.draft.buyPayer)) S.draft.buyPayer = members[0].id;
+  let h = "";
+  if (!ro){
+    h += `<section class="block"><form data-form="item" class="row">
+      <input id="dItem" class="grow" type="text" data-draft="item" value="${esc(S.draft.item)}" placeholder="Hva trenger dere?" maxlength="50" aria-label="Ny vare">
+      <button class="btn" type="submit">Legg til</button></form></section>`;
+  }
+  if (bought.length && !ro){
+    h += `<section class="buybar"><strong>${bought.length} ${bought.length===1?"vare":"varer"} handlet.</strong> Registrer kvitteringen så deles den på alle.
+      <form data-form="buy" class="grid2" style="margin-top:10px">
+        <input id="dBuyAmt" inputmode="decimal" data-draft="buyAmount" value="${esc(S.draft.buyAmount)}" placeholder="Sum på kvitteringen (kr)" aria-label="Sum på kvitteringen">
+        <select id="dBuyPayer" data-draft="buyPayer" aria-label="Hvem betalte">${members.map(m=>`<option value="${m.id}" ${m.id===S.draft.buyPayer?"selected":""}>${esc(m.name)} betalte</option>`).join("")}</select>
+        <button class="btn" type="submit">Legg til som utgift</button>
+        <button class="btn ghost" type="button" data-act="clearBought">Bare fjern fra lista</button>
+      </form></section>`;
+  }
+  h += `<section class="block">`;
+  h += items.length ? `<ul class="list">${items.map(it => `<li>
+      <button class="check" role="checkbox" aria-checked="${!!it.done}" aria-label="${esc(it.name)} kjøpt" data-act="toggleItem" data-id="${it.id}" ${ro?"disabled":""}>${it.done?CHECK:""}</button>
+      <span class="grow ${it.done?"done-txt":""}">${esc(it.name)}</span>
+      ${ro?"":`<button class="x" data-act="rmItem" data-id="${it.id}" aria-label="Fjern ${esc(it.name)}">×</button>`}
+    </li>`).join("")}</ul>` : `<div class="empty"><strong>Handlelista er tom</strong>Legg til det dere går tom for, så kan den som handler krysse av.</div>`;
+  h += `</section>`;
+  return h;
+}
+
+/* ---------- actions ---------- */
+async function addPerson(){
+  const name = S.draft.person.trim(); if (!name) return;
+  if (S.meta.members.some(m => m.name.toLowerCase() === name.toLowerCase())) { toast(`${name} er allerede med.`); return; }
+  if (S.meta.members.length >= MAX) { toast(`Maks ${MAX} beboere.`); return; }
+  const used = S.meta.members.map(m => m.color);
+  const color = COLORS.find(c => !used.includes(c)) || COLORS[S.meta.members.length % COLORS.length];
+  const m = { id: uid(), name, color, created: Date.now() };
+  S.meta.members = [...S.meta.members, m];
+  S.draft.person = ""; S.draft.split = null; render();
+  write(store.set("members/" + m.id, { name, color, created: m.created }));
+}
+function rmPerson(id){
+  const p = member(id); if (!p) return;
+  const v = round2(balances()[id]);
+  const msg = Math.abs(v) > 0.009
+    ? `${p.name} har en saldo på ${kr(v)}. Hen blir stående i oppgjøret til det er gjort opp, eller til dere endrer eller sletter utgiftene. Fjerne ${p.name} likevel?`
+    : `Fjerne ${p.name} fra kollektivet?`;
+  if (!confirm(msg)) return;
+  S.meta.members = S.meta.members.filter(m => m.id !== id);
+  S.allMembers = S.allMembers.map(m => m.id === id ? { ...m, removed: true } : m);
+  S.draft.split = null; if (S.draft.paidBy === id) S.draft.paidBy = ""; render();
+  write(store.set("members/" + id, { name: p.name, color: p.color, created: p.created || Date.now(), removed: true }));
+}
+function perPerson(split){ const a = parseAmt(S.draft.amount); return split.length && a > 0 ? `${kr(a / split.length)} per person` : ""; }
+function resetExpenseDraft(){ S.editing = null; S.draft.desc = ""; S.draft.amount = ""; S.draft.split = null; }
+function addExpense(){
+  const amount = parseAmt(S.draft.amount); const desc = S.draft.desc.trim();
+  const split = (S.draft.split ?? S.meta.members.map(m=>m.id)).filter(id => person(id));
+  if (!desc) return toast("Skriv hva utgiften gjelder.");
+  if (!(amount > 0)) return toast("Skriv inn et beløp større enn 0.");
+  if (!split.length) return toast("Velg minst én person å dele på.");
+  const old = S.editing && S.expenses.find(x => x.id === S.editing);
+  const id = old ? old.id : uid();
+  write(store.set("expenses/" + id, { desc, amount, paidBy: S.draft.paidBy, split, date: old ? (old.date || Date.now()) : Date.now(), type: "expense" }));
+  resetExpenseDraft(); render(); toast(old ? "Endringene er lagret." : "Utgift lagt til.");
+}
+
+document.addEventListener("input", e => {
+  const k = e.target.dataset.draft;
+  if (k) S.draft[k] = e.target.value;
+  if (k === "amount"){ const el = document.getElementById("perPerson"); if (el) el.textContent = perPerson(S.draft.split ?? S.meta.members.map(m => m.id)); }
+  if (e.target.id === "houseName"){ clearTimeout(nameTimer); nameTimer = setTimeout(() => { const v = e.target.value.trim() || "Kollektivet"; if (v !== S.meta.name){ S.meta.name = v; saveMeta(); } }, 700); }
+});
+document.addEventListener("change", e => {
+  const k = e.target.dataset.draft; if (k) S.draft[k] = e.target.value;
+});
+document.addEventListener("submit", e => {
+  e.preventDefault(); if (S.readOnly && S.mode !== "welcome") return;
+  const f = e.target.dataset.form;
+  if (f === "person") addPerson();
+  else if (f === "expense") addExpense();
+  else if (f === "join"){
+    const c = cleanCode(S.draft.join);
+    if (c.length < 12) return toast("Fant ingen gyldig kode. Lim inn hele invitasjonslenken.");
+    S.draft.join = ""; startHouse(c);
+  }
+  else if (f === "chore"){
+    const name = S.draft.chore.trim(); if (!name) return;
+    const c = { id: uid(), name, created: Date.now() };
+    S.meta.chores = [...S.meta.chores, c]; S.draft.chore = ""; render();
+    write(store.set("chores/" + c.id, { name, created: c.created }));
+  }
+  else if (f === "item"){
+    const name = S.draft.item.trim(); if (!name) return;
+    S.draft.item = ""; write(store.set("shopping/" + uid(), { name, done: false, added: Date.now() }));
+  }
+  else if (f === "buy"){
+    const amount = parseAmt(S.draft.buyAmount);
+    if (!(amount > 0)) return toast("Skriv inn summen på kvitteringen.");
+    const bought = S.shopping.filter(i => i.done);
+    const names = bought.map(i => i.name); const desc = "Handletur: " + (names.length > 3 ? names.slice(0,3).join(", ") + " m.m." : names.join(", "));
+    write(store.set("expenses/" + uid(), { desc, amount, paidBy: S.draft.buyPayer, split: S.meta.members.map(m=>m.id), date: Date.now(), type: "expense" }));
+    bought.forEach(i => write(store.del("shopping/" + i.id)));
+    S.draft.buyAmount = ""; toast("Handleturen er lagt til i utgiftene.");
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.id === "houseName") e.target.blur();
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b || b.disabled) return;
+  const id = b.dataset.id;
+  switch (b.dataset.act){
+    case "tab": S.tab = id; render(); break;
+    case "newHouse": startHouse(newCode()); break;
+    case "recommend": {
+      const url = new URL("./", location.href).href;
+      if (navigator.share) navigator.share({ title: "Kollektivet", text: "Enkel app for fellesutgifter, vaskeliste og handleliste i kollektivet:", url }).catch(()=>{});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast("Lenken er kopiert."), () => prompt("Kopier lenken:", url));
+      else prompt("Kopier lenken:", url);
+      break; }
+    case "switchHouse": {
+      if (!confirm("Bytte til et annet kollektiv? Du kommer tilbake hit ved å åpne invitasjonslenken igjen.")) break;
+      try { localStorage.removeItem("kollektivet-kode"); } catch(e){}
+      location.replace(baseUrl()); break; }
+    case "invite": {
+      const url = baseUrl() + "#" + S.house;
+      if (navigator.share) navigator.share({ title: S.meta.name, text: "Bli med i kollektivet vårt! Åpne lenken, eller lim den inn i Kollektivet-appen under «Har du fått en invitasjon?»:", url }).catch(()=>{});
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast("Lenken er kopiert."), () => prompt("Kopier lenken:", url));
+      else prompt("Kopier lenken:", url);
+      break; }
+    case "rmPerson": rmPerson(id); break;
+    case "toggleSplit": {
+      const cur = new Set(S.draft.split ?? S.meta.members.map(m=>m.id));
+      cur.has(id) ? cur.delete(id) : cur.add(id); S.draft.split = [...cur]; render(); break; }
+    case "settle": {
+      const amount = +b.dataset.amt;
+      if (!confirm(`Har ${nameOf(b.dataset.from)} betalt ${kr(amount)} til ${nameOf(b.dataset.to)}?`)) return;
+      write(store.set("expenses/" + uid(), { desc: "Oppgjør", amount, paidBy: b.dataset.from, split: [b.dataset.to], date: Date.now(), type: "settle" }));
+      toast("Registrert som betalt."); break; }
+    case "rmExpense": {
+      const ex = S.expenses.find(x => x.id === id); if (!ex) break;
+      const q = ex.type === "settle"
+        ? `Angre oppgjøret der ${nameOf(ex.paidBy)} betalte ${kr(ex.amount)} til ${nameOf(ex.split?.[0])}?`
+        : `Slette «${ex.desc}» (${kr(ex.amount)})?`;
+      if (!confirm(q)) break;
+      if (S.editing === id) resetExpenseDraft();
+      S.expenses = S.expenses.filter(x => x.id !== id); render();
+      write(store.del("expenses/" + id)); toast(ex.type === "settle" ? "Oppgjøret er angret." : "Utgiften er slettet."); break; }
+    case "editExpense": {
+      const ex = S.expenses.find(x => x.id === id); if (!ex) break;
+      S.editing = id; S.draft.desc = ex.desc; S.draft.amount = String(ex.amount).replace(".", ",");
+      S.draft.paidBy = ex.paidBy; S.draft.split = [...(ex.split || [])]; render();
+      const f = document.getElementById("expenseForm"); if (f) f.scrollIntoView({ behavior: "smooth", block: "start" });
+      const d = document.getElementById("dDesc"); if (d) d.focus({ preventScroll: true }); break; }
+    case "cancelEdit": resetExpenseDraft(); render(); break;
+    case "clearExpenses": {
+      const n = S.expenses.length; if (!n) break;
+      const open = settlements(balances()).length;
+      if (!confirm(open ? `Dere har ikke gjort opp ennå. Slette alle ${n} utgifter likevel? Alle saldoer blir nullstilt.` : `Slette alle ${n} utgifter og starte på nytt?`)) break;
+      const ids = S.expenses.map(x => x.id); S.expenses = []; resetExpenseDraft(); render();
+      ids.forEach(x => write(store.del("expenses/" + x))); toast("Historikken er slettet."); break; }
+    case "week": S.weekOffset += +b.dataset.d; render(); break;
+    case "suggest": { const t = Date.now(); S.meta.chores = SUGGESTED.map((name, i) => ({ id: uid(), name, created: t + i })); render();
+      S.meta.chores.forEach(c => write(store.set("chores/" + c.id, { name: c.name, created: c.created }))); break; }
+    case "toggleChore": {
+      const key = choreKey(id, S.weekOffset);
+      if (S.chorelog[key]) write(store.del("chorelog/" + key)); else write(store.set("chorelog/" + key, { done: true, at: Date.now() }));
+      break; }
+    case "rmChore": {
+      const c = S.meta.chores.find(x => x.id === id);
+      if (c && confirm(`Fjerne «${c.name}» fra vaskelista?`)){ S.meta.chores = S.meta.chores.filter(x => x.id !== id); render(); write(store.del("chores/" + id)); }
+      break; }
+    case "toggleItem": {
+      const it = S.shopping.find(x => x.id === id);
+      if (it) write(store.set("shopping/" + id, { name: it.name, added: it.added || Date.now(), done: !it.done })); break; }
+    case "rmItem": write(store.del("shopping/" + id)); break;
+    case "clearBought": S.shopping.filter(i => i.done).forEach(i => write(store.del("shopping/" + i.id))); break;
+  }
+});
+
+/* ---------- boot ---------- */
+const CODE_CHARS = "abcdefghjkmnpqrstuvwxyz23456789";
+const cleanCode = v => String(v || "").trim().split("#").pop().replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+const baseUrl = () => location.origin + location.pathname;
+let DB = null;
+
+async function boot(){
+  const cfg = window.FIREBASE_CONFIG || {};
+  if (window.firebase && cfg.apiKey && cfg.projectId){
+    try {
+      firebase.initializeApp(cfg);
+      await firebase.auth().signInAnonymously();
+      DB = firebase.firestore();
+    } catch(e){ console.error(e); DB = null; toast("Fikk ikke kontakt med Firebase. Bruker lokal lagring."); }
+  }
+  if (!DB){ startHouse(null); return; }
+  // Invitasjonslenke (#kode) først, ellers kollektivet denne enheten brukte sist.
+  let code = cleanCode(location.hash);
+  if (code.length < 12){ try { code = localStorage.getItem("kollektivet-kode") || ""; } catch(e){} }
+  if (code.length >= 12) startHouse(code);
+  else { S.mode = "welcome"; render(); }
+}
+function newCode(){ const a = new Uint8Array(14); crypto.getRandomValues(a); return Array.from(a, b => CODE_CHARS[b % CODE_CHARS.length]).join(""); }
+
+function startHouse(code){
+  if (code){
+    S.house = code;
+    try { localStorage.setItem("kollektivet-kode", code); } catch(e){}
+    if (cleanCode(location.hash) !== code) history.replaceState(null, "", "#" + code);
+    store = remoteStore(DB, "households/" + code + "/");
+    S.mode = "shared";
+  } else { store = localStore(); S.mode = "local"; }
+  let migrated = false;
+  store.watchDoc("house/meta", d => {
+    if (d) S.meta.name = d.name || "Kollektivet";
+    if (d && !migrated && (Array.isArray(d.members) || Array.isArray(d.chores)) && !S.readOnly){
+      migrated = true; const t = Date.now();
+      (d.members || []).forEach((m, i) => m && m.id && write(store.set("members/" + m.id, { name: m.name, color: m.color, created: t + i })));
+      (d.chores || []).forEach((c, i) => c && c.id && write(store.set("chores/" + c.id, { name: c.name, created: t + i })));
+      write(store.set("house/meta", { name: S.meta.name }));
+    }
+    render();
+  });
+  store.watchColl("members", list => {
+    S.allMembers = list.filter(m => m.name).map(m => ({ ...m })).sort(byCreated);
+    S.meta.members = S.allMembers.filter(m => !m.removed).slice(0, MAX); render(); });
+  store.watchColl("chores", list => { S.meta.chores = list.filter(c => c.name).map(c => ({ ...c })).sort(byCreated); render(); });
+  store.watchColl("expenses", list => { S.expenses = list.filter(e => typeof e.amount === "number"); render(); });
+  store.watchColl("shopping", list => { S.shopping = list.filter(i => i.name); render(); });
+  store.watchColl("chorelog", list => { S.chorelog = Object.fromEntries(list.map(d => [d.id, true])); render(); });
+  render();
+}
+// Åpner noen en annen invitasjonslenke mens siden er åpen, bytter vi kollektiv.
+window.addEventListener("hashchange", () => { const c = cleanCode(location.hash); if (DB && c.length >= 12 && c !== S.house) location.reload(); });
+
+function renderWelcome(){
+  return `<header><h1 class="house" style="margin:0">Kollektivet</h1>
+    <p class="sub">Del utgifter, vaskeliste og handleliste med de du bor med. Gratis, og ingen trenger å lage konto.</p></header>
+    <section class="block"><h2>Start et nytt kollektiv</h2>
+      <p class="muted" style="margin:0 0 14px">Du får en egen invitasjonslenke som du sender til de du bor med.</p>
+      <button class="btn" data-act="newHouse">Lag kollektiv</button></section>
+    <section class="block"><h2>Har du fått en invitasjon?</h2>
+      <p class="muted" style="margin:0 0 12px">Åpne lenken du fikk, eller lim den inn her.</p>
+      <form data-form="join" class="row"><input id="dJoin" class="grow" type="text" data-draft="join" value="${esc(S.draft.join || "")}" placeholder="Lim inn lenke eller kode" aria-label="Invitasjonslenke eller kode">
+      <button class="btn" type="submit">Bli med</button></form></section>`;
+}
+boot();
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
